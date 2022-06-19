@@ -24,15 +24,16 @@ const polls = [
   { question: 'Truth or dare', options: ['Truth', 'Dare'] },
   { question: 'Boolean?', options: ['True', 'False'] },
 ];
-
+//we are creating duplicate data
 const seed = async () => {
   try {
+  //first we remove all users
     await db.User.remove();
     console.log('DROP ALL USERS');
-
+///we remove all polls
     await db.Poll.remove();
     console.log('DROP ALL POLLS');
-
+//we are creating duplicate data for users
     await Promise.all(
       users.map(async user => {
         const data = await db.User.create(user);
@@ -40,7 +41,7 @@ const seed = async () => {
       }),
     );
     console.log('CREATED USERS', JSON.stringify(users));
-
+//we are creating a new poll data
     await Promise.all(
       polls.map(async poll => {
         poll.options = poll.options.map(option => ({ option, votes: 0 }));
