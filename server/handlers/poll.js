@@ -1,12 +1,27 @@
 const db = require('../models');
 exports.showPolls = async (req, res, next) => {
     try {
-    //   const polls = await db.Poll.find().populate('user', ['username', 'id']);
-    const polls = await db.Poll.find();
+      const polls = await db.Poll.find().populate('user', ['username', 'id']);
+    // const polls = await db.Poll.find();
     res.status(200).json(polls);
       // .populate('voted', ['username', 'id']);
   
       return res.status(200).json(polls);
+    } catch (err) {
+        err.status = 400;
+        next(400);
+    //   return next({
+    //     status: 400,
+    //     message: err.message,
+    //   });
+    }
+  };
+  exports.usersPolls = async (req, res, next) => {
+    const { id } = req.decoded;
+    try {
+      const user = await db.User.findById(id).populate('polls');
+      res.status(200).json(user.polls);
+    //   return res.status(200).json(user.polls);
     } catch (err) {
         err.status = 400;
         next(400);
@@ -33,11 +48,121 @@ exports.showPolls = async (req, res, next) => {
       // return res.status(201).json(poll);
     return res.status(201).json({ ...poll._doc, user: user._id });
     } catch (err) {
-        // err.status = 400;
-        // next(400);
-      return next({
-        status: 400,
-        message: err.message,
-      });
+        err.status = 400;
+        next(400);
+    //   return next({
+    //     status: 400,
+    //     message: err.message,
+    //   });
+    }
+  };
+  exports.getPoll = async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const poll = await db.Poll.findById(id).populate('user', [
+        'username',
+        'id',
+      ]);
+      // .populate('voted', ['username', 'id']);
+      if (!poll) throw new Error('No poll found');
+      res.status(200).json(poll);
+      //return res.status(200).json(poll);
+    } catch (err) {
+        err.status = 400;
+        next(400);
+    //   return next({
+    //     status: 400,
+    //     message: err.message,
+    //   });
+    }
+  };
+  exports.deletePoll = async (req, res, next) => {
+    const { id: pollId } = req.params;
+    const { id: userId } = req.decoded;
+    try {
+    //   let user = await db.User.findById(userId)
+    //   if(user.polls) { // not sure if necessary either...
+    //     user.polls = user.polls.filter(userPoll => {
+    //       return userPoll._id.toString() !== pollId.toString() // not sure if necessary to use toString()
+    //     })
+    //   }
+      
+      const poll = await db.Poll.findById(pollId);
+      if (!poll) throw new Error('No poll found');
+      if (poll.user.toString() !== userId) {
+        throw new Error('Unauthorized access');
+      }
+      //await user.save()
+      await poll.remove();
+      res.status(202).json(poll);
+      //return res.status(202).json({ poll, deleted: true });
+    } catch (err) {
+        err.status = 400;
+        next(400);
+    //   return next({
+    //     status: 400,
+    //     message: err.message,
+    //   });
+    }
+  };
+  exports.vote = async (req, res, next) => {
+    const { id: pollId } = req.params;
+    const { id: userId } = req.decoded;
+    const { answer } = req.body;
+    try {
+      if (answer) {
+        const poll = await db.Poll.findById(pollId);
+        if (!poll) throw new Error('No poll found');
+  //it will take the respose form user and increment the option vote along with 
+  //there id
+        const vote = poll.options.map(
+          option =>
+          {
+            if(option.option === answer){
+                return  {
+                              option: option.option,
+                              _id: option._id,
+                              votes: option.votes + 1,
+                            }
+            }
+            else{
+                return option;
+            }
+          }
+        //    return (option.option === answer
+        //       ? {
+        //           option: option.option,
+        //           _id: option._id,
+        //           votes: option.votes + 1,
+        //         }
+        //       : option),
+        );
+  
+        console.log('VOTE: USERID ', userId);
+        console.log('VOTE: poll.voted ', poll.voted);
+        console.log(
+          'VOTE: vote filter',
+          poll.voted.filter(user => user.toString() === userId).length,
+        );
+  //It will check the voted is already voted
+        if (poll.voted.filter(user => user.toString() === userId).length <= 0) {
+          poll.voted.push(userId);
+          poll.options = vote;
+          await poll.save();
+          res.status(202).json(poll)
+        //   return res.status(202).json(poll);
+        } else {
+          throw new Error('Already voted');
+        }
+      } else {
+        throw new Error('No Answer Provided');
+      }
+    } catch (err) {
+        err.status = 400;
+        next(400);
+    //   return next({
+    //     status: 400,
+    //     message: err.message,
+    //   });
     }
   };
