@@ -1,6 +1,7 @@
 import { createStore, applyMiddleware, compose } from 'redux';
 import thunk from 'redux-thunk';
 import rootReducer from './reducers';
+import { configureStore } from '@reduxjs/toolkit'
 const DEFAULT_STATE = {
     // auth: { isAuthenticated: false },
     error: { message: null },
@@ -11,13 +12,19 @@ const DEFAULT_STATE = {
     //   question: 'test_poll',
     // },
   };
-   const enhancers = compose(
-    applyMiddleware(thunk),
-    window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
-    );
+     
 export const store = createStore(
       rootReducer,
       DEFAULT_STATE,
-      enhancers
+      compose(
+        applyMiddleware(thunk),
+        window.__REDUX_DEVTOOLS_EXTENSION__
+        ? window.__REDUX_DEVTOOLS_EXTENSION__()
+        : f => f
+        )
     );  
- 
+    // export const store=configureStore({
+    //   rootReducer,
+    //   DEFAULT_STATE,
+    //   enhancers
+    // })

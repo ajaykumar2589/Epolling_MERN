@@ -15,7 +15,7 @@ if (localStorage.jwtToken) {
 }
 const App = () => (
     <Provider store={store}>
-    <div>App works</div>
+    <div>App working very great</div>
       {/* <Router>
         <Fragment>
           <NavBar />
