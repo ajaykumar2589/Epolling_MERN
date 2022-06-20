@@ -1,9 +1,14 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import { Provider } from 'react-redux';
-import {store} from '../store';
+import { BrowserRouter as Router } from 'react-router-dom';
 import decode from 'jwt-decode';
+
+import { store } from '../store';
 import { setToken, setCurrentUser, addError } from '../store/actions';
-import api from '../services/api';
+
+import NavBar from './NavBar';
+import RouteViews from './RouteViews';
+
 if (localStorage.jwtToken) {
   setToken(localStorage.jwtToken);
   try {
@@ -13,28 +18,16 @@ if (localStorage.jwtToken) {
     store.dispatch(addError(err));
   }
 }
+
 const App = () => (
-    <Provider store={store}>
-    <div>App working very great</div>
-      {/* <Router>
-        <Fragment>
-          <NavBar />
-          <RouteViews />
-        </Fragment>
-      </Router> */}
-    </Provider>
-  );
-// class App extends React.Component {
-//     //this function runs imdiately after below render
-//     async componentDidMount() {
-//    const result =await api.call('post','auth/login',{
-//     username:'username',
-//     password:'password'
-//    });
-//    console.log(result);
-//     }
-//     render() { 
-//         return <div>App works</div>
-//     }
-// }
+  <Provider store={store}>
+    <Router>
+      <Fragment>
+        <NavBar />
+        <RouteViews />
+      </Fragment>
+    </Router>
+  </Provider>
+);
+
 export default App;
